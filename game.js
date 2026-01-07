@@ -1,14 +1,22 @@
-// 游戏配置
+// 游戏配置（DOS风格）
 const config = {
     canvasWidth: 800,
     canvasHeight: 600,
-    lineY: 550, // 红线位置
-    initialSpeed: 2, // 初始下落速度
-    speedIncrease: 0.1, // 每500分速度增加10%
+    lineY: 550, // 红线位置（DOS风格）
+    initialSpeed: 0.1, // 初始下落速度
+    speedIncrease: 0.005, // 每500分速度增加10%
     scorePerLetter: 10, // 每个字母得分
     letterSize: 30, // 字母大小
     spawnInterval: 1000, // 字母生成间隔(毫秒)
-    gameOver: false // 游戏结束状态
+    gameOver: false, // 游戏结束状态
+    dosColors: {
+        bg: '#000000',
+        text: '#00ff00',
+        border: '#00ff00',
+        hit: '#00ff00',
+        miss: '#ff0000',
+        line: '#ff0000'
+    }
 };
 
 // 游戏状态
@@ -36,16 +44,27 @@ function init() {
     canvas.width = config.canvasWidth;
     canvas.height = config.canvasHeight;
     
-    // 添加START GAME按钮
+    // 绘制初始DOS风格界面
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = config.dosColors.bg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.font = '40px "Courier Prime", monospace, Fixedsys';
+    ctx.fillStyle = config.dosColors.text;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = config.dosColors.text;
+    ctx.shadowBlur = 5;
+    ctx.fillText('TYPING GAME', canvas.width/2, canvas.height/2 - 50);
+    ctx.shadowBlur = 0;
+    
+    // 添加START GAME按钮（DOS风格）
     const button = document.createElement('button');
     button.textContent = 'START GAME';
     button.style.position = 'absolute';
     button.style.left = '50%';
     button.style.top = '50%';
     button.style.transform = 'translate(-50%, -50%)';
-    button.style.padding = '10px 20px';
-    button.style.fontSize = '20px';
-    button.style.cursor = 'pointer';
     document.body.appendChild(button);
     
     button.addEventListener('click', () => {
@@ -61,26 +80,44 @@ function resetGame() {
     letters = [];
     lastSpawnTime = 0;
     config.gameOver = false;
-    document.getElementById('score').textContent = `Score: ${score}`;
+    document.getElementById('score').textContent = `SCORE: ${score}`;
+    
+    // 重置字母生成相关变量
+    currentLetterIndex = 0;
+    lettersSpawned = 0;
+    spawnPhase = 1;
 }
 
 function endGame(ctx, canvas) {
     config.gameOver = true;
-    ctx.font = '60px Arial';
-    ctx.fillStyle = 'red';
-    ctx.textAlign = 'center';
-    ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2);
     
-    // 添加NEW GAME按钮
+    // DOS风格游戏结束界面
+    ctx.fillStyle = config.dosColors.bg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.font = '60px "Courier Prime", monospace, Fixedsys';
+    ctx.fillStyle = config.dosColors.miss;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    // 添加文字阴影效果
+    ctx.shadowColor = config.dosColors.miss;
+    ctx.shadowBlur = 10;
+    ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2);
+    ctx.shadowBlur = 0;
+    
+    // 显示最终分数
+    ctx.font = '30px "Courier Prime", monospace, Fixedsys';
+    ctx.fillStyle = config.dosColors.text;
+    ctx.fillText(`FINAL SCORE: ${score}`, canvas.width/2, canvas.height/2 + 60);
+    
+    // 添加NEW GAME按钮（DOS风格，上调位置避免重叠）
     const button = document.createElement('button');
     button.textContent = 'NEW GAME';
     button.style.position = 'absolute';
     button.style.left = '50%';
-    button.style.top = '60%';
+    button.style.top = '55%';
     button.style.transform = 'translate(-50%, -50%)';
-    button.style.padding = '10px 20px';
-    button.style.fontSize = '20px';
-    button.style.cursor = 'pointer';
     document.body.appendChild(button);
     
     button.addEventListener('click', () => {
@@ -88,9 +125,12 @@ function endGame(ctx, canvas) {
         resetGame();
         requestAnimationFrame(gameLoop);
     });
+    
     document.addEventListener('keydown', (e) => {
         if (e.code === 'Space') {
-            document.body.removeChild(button);
+            if (document.body.contains(button)) {
+                document.body.removeChild(button);
+            }
             resetGame();
             requestAnimationFrame(gameLoop);
         }
@@ -104,14 +144,15 @@ function gameLoop(timestamp) {
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    // 清空画布
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // 清空画布（DOS风格黑色背景）
+    ctx.fillStyle = config.dosColors.bg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // 绘制红线
+    // 绘制红线（DOS风格）
     ctx.beginPath();
     ctx.moveTo(0, config.lineY);
     ctx.lineTo(canvas.width, config.lineY);
-    ctx.strokeStyle = 'red';
+    ctx.strokeStyle = config.dosColors.line;
     ctx.lineWidth = 3;
     ctx.stroke();
     
@@ -125,8 +166,8 @@ function gameLoop(timestamp) {
     updateLetters(timestamp);
     drawLetters(ctx);
     
-    // 更新分数显示
-    document.getElementById('score').textContent = `Score: ${score}`;
+    // 更新分数显示（DOS风格）
+    document.getElementById('score').textContent = `SCORE: ${score}`;
     
     // 检查游戏结束
     if (score < 0) {
@@ -138,25 +179,66 @@ function gameLoop(timestamp) {
     requestAnimationFrame(gameLoop);
 }
 
-// 生成随机字母
-function spawnLetter() {
-    const N = Math.floor(score / 200);
-    let n = 1;
+// 字母生成逻辑相关变量
+let currentLetterIndex = 0;
+let spawnPhase = 1; // 1: 第一轮按顺序, 2: 第二轮单个随机, 3: 后续随机
+let lettersSpawned = 0;
+const PHASE1_LIMIT = 26; // 第一轮生成26个字母（A-Z）
+const PHASE2_LIMIT = PHASE1_LIMIT + 26; // 第二轮再生成26个单个随机字母
+
+// 检查新字母位置是否与现有字母重叠
+function checkLetterOverlap(newX, newY, newSize, newChar) {
+    const newWidth = newChar.length * newSize;
     
-    // 当分数达到200的N倍时，60%概率生成单个字母，40%概率生成1到N个字母
-    if (N > 0) {
-        if (Math.random() > 0.4) {
-            n = 1;
-        } else {
-            n = Math.floor(Math.random() * N) + 1;
+    for (let i = 0; i < letters.length; i++) {
+        const existing = letters[i];
+        const existingWidth = existing.char.length * existing.size;
+        const existingHeight = existing.size;
+        
+        // 计算边界
+        const newLeft = newX;
+        const newRight = newX + newWidth;
+        const newTop = newY;
+        const newBottom = newY + newSize;
+        
+        const existingLeft = existing.x;
+        const existingRight = existing.x + existingWidth;
+        const existingTop = existing.y;
+        const existingBottom = existing.y + existingHeight;
+        
+        // 检查水平和垂直重叠
+        if (!(newRight < existingLeft || newLeft > existingRight || 
+              newBottom < existingTop || newTop > existingBottom)) {
+            return true; // 重叠
         }
     }
     
+    return false; // 不重叠
+}
+
+function spawnLetter() {
     let word = '';
+    let n = 1;
     
-    // 生成n个随机字母
-    for (let i = 0; i < n; i++) {
-        word += String.fromCharCode(65 + Math.floor(Math.random() * 26)); // A-Z
+    // 根据阶段确定生成逻辑
+    if (lettersSpawned < PHASE1_LIMIT) {
+        // 第一轮：按顺序生成单个字母
+        word = String.fromCharCode(65 + currentLetterIndex % 26);
+        currentLetterIndex++;
+        spawnPhase = 1;
+    } else if (lettersSpawned < PHASE2_LIMIT) {
+        // 第二轮：单个字母随机生成
+        word = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+        spawnPhase = 2;
+    } else {
+        // 后续轮：随机生成1-3个字母组合
+        spawnPhase = 3;
+        const N = Math.min(3, Math.floor(score / 200) + 1);
+        n = Math.floor(Math.random() * N) + 1;
+        
+        for (let i = 0; i < n; i++) {
+            word += String.fromCharCode(65 + Math.floor(Math.random() * 26));
+        }
     }
     
     // 计算字母组合的总宽度
@@ -164,48 +246,75 @@ function spawnLetter() {
     
     // 确保字母组合不会超出画布边界
     const maxX = config.canvasWidth - wordWidth;
-    const x = Math.random() * Math.max(0, maxX);
+    
+    // 尝试生成不重叠的位置，最多尝试10次
+    let attempts = 0;
+    let x, y;
+    let overlap = true;
+    
+    while (overlap && attempts < 10) {
+        x = Math.random() * Math.max(0, maxX);
+        y = -config.letterSize; // 从画布上方生成
+        overlap = checkLetterOverlap(x, y, config.letterSize, word);
+        attempts++;
+    }
+    
+    // 如果尝试10次都重叠，仍然生成（避免无限循环）
+    if (overlap) {
+        x = Math.random() * Math.max(0, maxX);
+        y = -config.letterSize;
+    }
     
     letters.push({
         char: word,
         x: x,
-        y: 0,
+        y: y,
         size: config.letterSize,
-        color: 'black',
+        color: config.dosColors.text,
         hit: false,
         miss: false,
         timestamp: 0
     });
+    
+    lettersSpawned++;
 }
 
-// 更新字母位置
+// 更新字母位置（DOS风格动画）
 function updateLetters(timestamp) {
     letters = letters.filter(letter => {
-        // 字母未到达红线且未被击中
-        if (letter.y < config.lineY && !letter.hit) {
-            letter.y += speed;
-            return true;
-        }
-        
-        // 字母被击中
+        // 字母被击中（DOS风格爆炸效果）
         if (letter.hit) {
-            if (timestamp - letter.timestamp < 200) { // 显示效果200毫秒
-                letter.size += 2;
+            if (timestamp - letter.timestamp < 300) { // 显示效果300毫秒
+                letter.size += 3;
+                // DOS风格的闪烁效果
+                letter.blink = (letter.blink || 0) + 0.2;
                 return true;
             }
             return false;
         }
         
-        // 字母未被击中且到达红线
-        if (!letter.miss) {
+        // 字母未被击中且到达红线（下沿碰到红线立即触发）
+        if (!letter.miss && (letter.y + letter.size/2) >= config.lineY) {
             letter.miss = true;
-            letter.color = 'red';
+            letter.color = config.dosColors.miss;
             letter.timestamp = timestamp;
             score -= config.scorePerLetter;
         }
         
-        if (timestamp - letter.timestamp < 200) { // 显示效果200毫秒
-            letter.size += 2;
+        // 字母未到达红线且未被击中，继续下落
+        if (!letter.miss) {
+            letter.y += speed;
+            // 添加DOS风格的闪烁效果
+            if (!letter.blink) letter.blink = 0;
+            letter.blink = (letter.blink + 0.1) % (Math.PI * 2);
+            return true;
+        }
+        
+        // 处理miss后的动画效果
+        if (timestamp - letter.timestamp < 300) { // 显示效果300毫秒
+            letter.size += 3;
+            // DOS风格的闪烁效果
+            letter.blink = (letter.blink || 0) + 0.2;
             return true;
         }
         
@@ -225,16 +334,43 @@ function updateLetters(timestamp) {
     }
 }
 
-// 绘制字母
+// 绘制字母（DOS风格带闪烁效果）
 function drawLetters(ctx) {
-    ctx.font = `${config.letterSize}px Arial`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
     letters.forEach(letter => {
-        ctx.fillStyle = letter.color;
-        ctx.font = `${letter.size}px Arial`;
-        ctx.fillText(letter.char, letter.x + letter.size/2, letter.y + letter.size/2);
+        ctx.font = `${letter.size}px 'Courier Prime', monospace, 'Fixedsys'`;
+        
+        // DOS风格闪烁效果
+        if (letter.blink) {
+            // 基于正弦函数创建闪烁效果
+            const opacity = 0.5 + 0.5 * Math.abs(Math.sin(letter.blink));
+            ctx.fillStyle = letter.color;
+            
+            // 绘制多层文字以增强DOS风格的像素化效果
+            ctx.fillText(letter.char, letter.x + letter.size/2, letter.y + letter.size/2);
+            
+            // 添加文字阴影增强DOS效果
+            if (letter.color === config.dosColors.text || letter.color === config.dosColors.hit) {
+                ctx.shadowColor = letter.color;
+                ctx.shadowBlur = 3;
+                ctx.fillText(letter.char, letter.x + letter.size/2, letter.y + letter.size/2);
+                ctx.shadowBlur = 0;
+            }
+        } else {
+            // 正常绘制
+            ctx.fillStyle = letter.color;
+            ctx.fillText(letter.char, letter.x + letter.size/2, letter.y + letter.size/2);
+            
+            // 添加文字阴影
+            if (letter.color === config.dosColors.text) {
+                ctx.shadowColor = config.dosColors.text;
+                ctx.shadowBlur = 5;
+                ctx.fillText(letter.char, letter.x + letter.size/2, letter.y + letter.size/2);
+                ctx.shadowBlur = 0;
+            }
+        }
     });
 }
 
@@ -284,25 +420,46 @@ window.onload = function() {
     canvas.width = config.canvasWidth;
     canvas.height = config.canvasHeight;
     
-    // 显示START GAME按钮
+    // 绘制DOS风格初始界面
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = config.dosColors.bg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // 显示游戏标题
+    ctx.font = '40px "Courier Prime", monospace, Fixedsys';
+    ctx.fillStyle = config.dosColors.text;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = config.dosColors.text;
+    ctx.shadowBlur = 5;
+    ctx.fillText('TYPING GAME', canvas.width/2, canvas.height/2 - 50);
+    ctx.shadowBlur = 0;
+    
+    // 显示游戏说明
+    ctx.font = '20px "Courier Prime", monospace, Fixedsys';
+    ctx.fillText('PRESS SPACE OR CLICK START TO BEGIN', canvas.width/2, canvas.height/2 + 20);
+    
+    // 显示START GAME按钮（DOS风格）
     const button = document.createElement('button');
     button.textContent = 'START GAME';
     button.style.position = 'absolute';
     button.style.left = '50%';
-    button.style.top = '50%';
+    button.style.top = '60%';
     button.style.transform = 'translate(-50%, -50%)';
-    button.style.padding = '10px 20px';
-    button.style.fontSize = '20px';
-    button.style.cursor = 'pointer';
     document.body.appendChild(button);
     
-    button.addEventListener('click', startGame);
+    button.addEventListener('click', () => {
+        document.body.removeChild(button);
+        startGame();
+    });
         
-        // 添加空格键监听
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') {
+    // 添加空格键监听
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') {
+            if (document.body.contains(button)) {
                 document.body.removeChild(button);
-                startGame();
             }
-        });
+            startGame();
+        }
+    });
 };

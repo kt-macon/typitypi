@@ -5,22 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Typing Game</title>
     <style>
+        /* DOS风格基础样式 */
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+        
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #f0f0f0;
+            background-color: #000000;
+            color: #00ff00;
+            font-family: 'Courier Prime', monospace, 'Fixedsys';
         }
+        
         canvas {
             display: block;
-            background-color: white;
+            background-color: #000000;
             margin: 0 auto;
+            border: 2px solid #00ff00;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
         }
+        
         #score {
             position: absolute;
             top: 10px;
             left: 10px;
             font-size: 24px;
-            font-family: Arial, sans-serif;
+            font-family: 'Courier Prime', monospace, 'Fixedsys';
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
+        }
+        
+        /* DOS风格按钮 */
+        button {
+            background-color: #000000;
+            color: #00ff00;
+            border: 2px solid #00ff00;
+            font-family: 'Courier Prime', monospace, 'Fixedsys';
+            font-size: 18px;
+            padding: 8px 16px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            transition: all 0.2s ease;
+        }
+        
+        button:hover {
+            background-color: #00ff00;
+            color: #000000;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+        }
+        
+        button:active {
+            transform: translateY(1px);
         }
     </style>
 </head>
